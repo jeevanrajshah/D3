@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stacked Bar Chart</title>
+    <script src='https://d3js.org/d3.v4.min.js'></script><script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <style type="text/css">
+        svg {
+            font: 10px sans-serif;
+            shape-rendering: crispEdges;
+        }
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+        }
+
+        path.domain {
+            stroke: none;
+        }
+
+        .y .tick line {
+            stroke: #ddd;
+        }
+    </style>
+
+</head>
+<body>
+
+</body>
+</html>
+
+<script>
+
+    var margin = {top: 20, right: 160, bottom: 35, left: 30};
+
+    var width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    var colors = ["#607aa8", "#1a3d7a"];
+
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var rawData = [
+        { group: "1", value: "100"},
+        { group: "2", value: "56"},
+        { group: "3", value: "120"},
+        { group: "4", value: "60"},
+        { group: "5", value: "150"},
+        { group: "6", value: "200"}];
+    var benchmark = 110;
+
+    var data = [];
+    rawData.forEach(function (val) {
+        var a ;
+       if(val.value > benchmark) {
+            a = {group: val.group, value: val.value, belowBenchMark: benchmark, aboveBenchMark: val.value - benchmark};
+       }
+       else{
+           a = {group: val.group,value: val.value, belowBenchMark: val.value, aboveBenchMark: 0};
+       }
+        data.push(a);
+        console.log(data);
+    });
+
+    var parse = d3.time.format("%Y").parse;
+
+    // Transpose the data into layers
+    var dataset = d3.layout.stack()(["belowBenchMark", "aboveBenchMark"].map(function(dataSet) {
+        return data.map(function(d) {
+            return {x: parse(d.group), y: +d[dataSet], label: +d.value, xA : d.group};
+        });
+    }));
+    console.log(dataset);
+
+
+    // Set x, y and colors
+    var x = d3.scale.ordinal()
+        .domain(dataset[0].map(function(d) { return d.x; }))
+        .rangeRoundBands([10, width-10], 0.5);
+
+    var y = d3.scale.linear()
+        .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; }) +50 ;  })])
+        .range([height, 0]);
+
+    console.log(x.rangeBand());
+    // console.log(x(0).rangeBand());
+    // console.log(x(1));
+    // console.log(x(2));
+    // console.log(x(3));
+
+    // Define and draw axes
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(5)
+        .tickSize(-width, 0, 0)
+        .tickFormat( function(d) { return d } );
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .tickFormat(d3.time.format("%Y"));
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+
+    // Create groups for each series, rects for each segment
+    var groups = svg.selectAll("g.claims")
+        .data(dataset)
+        .enter().append("g")
+        .attr("class", "claims")
+        .style("fill", function(d, i) { return colors[i]; });
+
+    var rect = groups.selectAll("rect")
+        .data(function(d) { return d; })
+        .enter()
+        .append("rect")
+        .attr("x", function(d) { return x(d.x); })
+        .attr("y", function(d) { return y(d.y0 + d.y); })
+        .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+        .attr("width", x.rangeBand())
+        /*.on("mouseover", function() { tooltip.style("display", null); })
+        .on("mouseout", function() { tooltip.style("display", "none"); })
+        .on("mousemove", function(d) {
+            var xPosition = d3.mouse(this)[0] - 15;
+            var yPosition = d3.mouse(this)[1] - 25;
+            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+            tooltip.select("text").text(d.y);
+        })*/;
+
+    var barWidth =480/data.length;
+    console.log(barWidth);
+
+    var labela =d3.select('svg').selectAll('text')
+        .append('text')
+        .text(function () {
+            return "hello";
+        })
+        .attr('y', function (d) { return 100;})
+        .attr('x', function (d, i) { return 20})
+        .attr('fill', '#A64C38');
+
+    var label =svg.selectAll('text')
+        .data(data)
+        .enter()
+        .append('text')
+        .text(function (d) {
+            return d.value;
+        })
+        .attr('y', function (d) { return y(d.value);})
+        .attr('x', function (d, i) { return (2*i-1)*x.rangeBand()+margin.right/1.5})
+        .attr('fill', '#A64C38');
+
+    var benchMarkLine = svg.selectAll('toto')
+        .data(data)
+        .enter()
+        .append("line")
+        .attr('x1', function (d, i) { return (2*i-1)*x.rangeBand()+margin.right/1.5})
+        .attr("x2", function (d, i) { return (2*i)*x.rangeBand()+margin.right/1.15})
+        .attr('y1', y(benchmark))
+        .attr('y2', y(benchmark))
+        .attr("stroke-width", 2)
+        .attr("stroke", "#A64C38")
+        .attr("fill", "none");
+
+
+    // Draw legend
+    var legend = svg.selectAll(".legend")
+        .data(colors)
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
+
+    legend.append("rect")
+        .attr("x", width - 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", function(d, i) {return colors.slice().reverse()[i];});
+
+    legend.append("text")
+        .attr("x", width + 5)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "start")
+        .text(function(d, i) {
+            switch (i) {
+                case 0: return "Above Benchmark";
+                case 1: return "Below Benchmark";
+            }
+        });
+
+
+    /*// Prep the tooltip bits, initial display is hidden
+    var tooltip = svg.append("g")
+        .attr("class", "tooltip")
+        .style("display", "none");
+
+    tooltip.append("rect")
+        .attr("width", 30)
+        .attr("height", 20)
+        .attr("fill", "white")
+        .style("opacity", 0.5);
+
+    tooltip.append("text")
+        .attr("x", 15)
+        .attr("dy", "1.2em")
+        .style("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold");*/
+
+</script>
