@@ -26,11 +26,23 @@
 
 </head>
 <body>
+<div>
+    <button id = 'btn_transition1' onclick=plotChart(1)>Option 1</button>
+    <button id = 'btn_transition2' onclick="plotChart(2)">Option 2</button>
+</div>
 
 </body>
 </html>
 
 <script>
+    var groups;
+    var rect;
+    var benchMarkLine;
+    var data = [];
+    var dataset;
+    var check = 1;
+    var xScale, yScale, xAxis, yAxis;
+    var barWidth;
 
     var margin = {top: 20, right: 160, bottom: 35, left: 30};
 
@@ -41,167 +53,56 @@
 
     var svg = d3.select("body")
         .append("svg")
+        .attr("class", "svg-container")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
+        .attr("class", "chart")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var rawData = [
-        { group: "1", value: "100"},
-        { group: "2", value: "56"},
-        { group: "3", value: "120"},
-        { group: "4", value: "60"},
-        { group: "5", value: "150"},
-        { group: "6", value: "200"}];
-    var benchmark = 110;
+  /*  svg.append("path")
+        .attr("d", d3.svg.symbol().type("triangle-up"));*/
 
-    var data = [];
-    rawData.forEach(function (val) {
-        var a ;
-       if(val.value > benchmark) {
-            a = {group: val.group, value: val.value, belowBenchMark: benchmark, aboveBenchMark: val.value - benchmark};
-       }
-       else{
-           a = {group: val.group,value: val.value, belowBenchMark: val.value, aboveBenchMark: 0};
-       }
-        data.push(a);
-        console.log(data);
-    });
+    var rawData1 = [
+        { group: "All Medical Claims", value: "100", benchmark: "80"},
+        { group: "In Patient", value: "56", benchmark: "20"},
+        { group: "Out Patient", value: "120", benchmark: "45"},
+        { group: "Office Visit", value: "60", benchmark: "75"},
+        { group: "Pharmacy Claims", value: "150", benchmark: "140"}];
 
-    var parse = d3.time.format("%Y").parse;
+    var rawData2 = [
+        { group: "All Medical Claims", value: "10", benchmark: "8"},
+        { group: "In Patient", value: "5", benchmark: "2"},
+        { group: "Out Patient", value: "12", benchmark: "4"},
+        { group: "Office Visit", value: "6", benchmark: "7"},
+        { group: "Pharmacy Claims", value: "15", benchmark: "23"}];
 
-    // Transpose the data into layers
-    var dataset = d3.layout.stack()(["belowBenchMark", "aboveBenchMark"].map(function(dataSet) {
-        return data.map(function(d) {
-            return {x: parse(d.group), y: +d[dataSet], label: +d.value, xA : d.group};
-        });
-    }));
-    console.log(dataset);
+    onLoad();
 
-
-    // Set x, y and colors
-    var x = d3.scale.ordinal()
-        .domain(dataset[0].map(function(d) { return d.x; }))
-        .rangeRoundBands([10, width-10], 0.5);
-
-    var y = d3.scale.linear()
-        .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; }) +50 ;  })])
-        .range([height, 0]);
-
-    console.log(x.rangeBand());
-    // console.log(x(0).rangeBand());
-    // console.log(x(1));
-    // console.log(x(2));
-    // console.log(x(3));
-
-    // Define and draw axes
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left")
-        .ticks(5)
-        .tickSize(-width, 0, 0)
-        .tickFormat( function(d) { return d } );
-
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom")
-        .tickFormat(d3.time.format("%Y"));
-
-    svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis);
-
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
-
-
-    // Create groups for each series, rects for each segment
-    var groups = svg.selectAll("g.claims")
-        .data(dataset)
-        .enter().append("g")
-        .attr("class", "claims")
-        .style("fill", function(d, i) { return colors[i]; });
-
-    var rect = groups.selectAll("rect")
-        .data(function(d) { return d; })
-        .enter()
-        .append("rect")
-        .attr("x", function(d) { return x(d.x); })
-        .attr("y", function(d) { return y(d.y0 + d.y); })
-        .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
-        .attr("width", x.rangeBand())
-        /*.on("mouseover", function() { tooltip.style("display", null); })
-        .on("mouseout", function() { tooltip.style("display", "none"); })
-        .on("mousemove", function(d) {
-            var xPosition = d3.mouse(this)[0] - 15;
-            var yPosition = d3.mouse(this)[1] - 25;
-            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-            tooltip.select("text").text(d.y);
-        })*/;
-
-    var barWidth =480/data.length;
-    console.log(barWidth);
-
-    var labela =d3.select('svg').selectAll('text')
-        .append('text')
-        .text(function () {
-            return "hello";
-        })
-        .attr('y', function (d) { return 100;})
-        .attr('x', function (d, i) { return 20})
-        .attr('fill', '#A64C38');
-
-    var label =svg.selectAll('text')
-        .data(data)
-        .enter()
-        .append('text')
-        .text(function (d) {
-            return d.value;
-        })
-        .attr('y', function (d) { return y(d.value);})
-        .attr('x', function (d, i) { return (2*i-1)*x.rangeBand()+margin.right/1.5})
-        .attr('fill', '#A64C38');
-
-    var benchMarkLine = svg.selectAll('toto')
-        .data(data)
-        .enter()
-        .append("line")
-        .attr('x1', function (d, i) { return (2*i-1)*x.rangeBand()+margin.right/1.5})
-        .attr("x2", function (d, i) { return (2*i)*x.rangeBand()+margin.right/1.15})
-        .attr('y1', y(benchmark))
-        .attr('y2', y(benchmark))
-        .attr("stroke-width", 2)
-        .attr("stroke", "#A64C38")
-        .attr("fill", "none");
-
-
-    // Draw legend
-    var legend = svg.selectAll(".legend")
-        .data(colors)
-        .enter().append("g")
-        .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
+    /* // Draw legend
+     var legend = svg.selectAll(".legend")
+         .data(colors)
+         .enter().append("g")
+         .attr("class", "legend")
+         .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
 
     legend.append("rect")
-        .attr("x", width - 18)
-        .attr("width", 18)
-        .attr("height", 18)
-        .style("fill", function(d, i) {return colors.slice().reverse()[i];});
+           .attr("x", width - 18)
+           .attr("width", 18)
+           .attr("height", 18)
+           .style("fill", function(d, i) {return colors.slice().reverse()[i];});
 
-    legend.append("text")
-        .attr("x", width + 5)
-        .attr("y", 9)
-        .attr("dy", ".35em")
-        .style("text-anchor", "start")
-        .text(function(d, i) {
-            switch (i) {
-                case 0: return "Above Benchmark";
-                case 1: return "Below Benchmark";
-            }
-        });
-
+       legend.append("text")
+           .attr("x", width + 5)
+           .attr("y", 9)
+           .attr("dy", ".35em")
+           .style("text-anchor", "start")
+           .text(function(d, i) {
+               switch (i) {
+                   case 0: return "Above Benchmark";
+                   case 1: return "Below Benchmark";
+               }
+           });*/
 
     /*// Prep the tooltip bits, initial display is hidden
     var tooltip = svg.append("g")
@@ -220,5 +121,160 @@
         .style("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("font-weight", "bold");*/
+
+    function onLoad(){
+        getData(rawData1);
+        setXAxis();
+        setYAxis();
+        barWidth=750/data.length/2;
+        // parseFloat(document.getElementsByClassName("bar")[0].getAttribute("width"));
+        console.log(barWidth);
+        plotChart(1);
+    }
+
+    function plotChart(check) {
+        svg.selectAll("g.claims").remove();
+        svg.selectAll("line.benchMarkLine").remove();
+        var rawData = (check==1)?rawData1:rawData2;
+        getData(rawData);
+        createGroups();
+        populateData();
+        drawBenchmark();
+    }
+
+    function getData(rawData) {
+        data = [];
+        rawData.forEach(function (val) {
+            var a ;
+            if(parseFloat(val.value) > parseFloat(val.benchmark)) {
+                console.log(val.value +" is more than "+val.benchmark);
+                a = {group: val.group, value: val.value, belowBenchMark: val.benchmark, aboveBenchMark: val.value - val.benchmark, benchmark: val.benchmark};
+            }
+            else{
+                console.log(val.value +" is less than "+val.benchmark);
+                a = {group: val.group,value: val.value, belowBenchMark: val.value, aboveBenchMark: 0, benchmark: val.benchmark};
+            }
+            data.push(a);
+        });
+        console.log(data);
+
+        // Transpose the data into layers
+        dataset = d3.layout.stack()(["belowBenchMark", "aboveBenchMark"].map(function(dataSet) {
+            return data.map(function(d) {
+                return {x: d.group, y: +d[dataSet], label: +d.value, xA : d.group};
+            });
+        }));
+        console.log(dataset);
+    }
+
+    function createGroups() {
+        // Create groups for each series, rects for each segment
+        groups = svg.selectAll("g.claims")
+            .data(dataset)
+            .enter().append("g")
+            .attr("class", "claims")
+            .style("fill", function(d, i) { return colors[i]; });
+    }
+
+    function populateData() {
+        rect = groups.selectAll("rect");
+        var rectCount = document.getElementsByClassName("bar").length;
+        console.log(rectCount);
+        rect
+            .data(function(d) { return d; })
+            .enter()
+            .append("rect")
+            .attr("opacity","0.7")
+            .attr("class", "bar")
+            .attr("x", function(d) { return xScale(d.x); })
+            .attr("y", function(d) { return yScale(d.y0 + d.y); })
+            .attr("height", function(d) { return yScale(d.y0) - yScale(d.y0 + d.y); })
+            .attr("width", xScale.rangeBand())
+        /*.on("mouseover", function() { tooltip.style("display", null); })
+        .on("mouseout", function() { tooltip.style("display", "none"); })
+        .on("mousemove", function(d) {
+            var xPosition = d3.mouse(this)[0] - 15;
+            var yPosition = d3.mouse(this)[1] - 25;
+            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+            tooltip.select("text").text(d.y);
+        });*/
+        console.log(rect);
+
+        var label = groups.selectAll('text')
+            .data(function(d) { return d; })
+            .enter()
+            .append("text")
+            .text(function (d) {
+                return d.label;
+            })
+            .attr('y', function (d) { return yScale(d.label + 5);})
+            .attr('x', function (d, i) { return xScale(d.x) + barWidth/2;})
+            .attr('fill', '#A64C38');
+
+        label.style("text-anchor","middle");
+    }
+
+    function drawBenchmark() {
+        benchMarkLine = svg.selectAll('toto');
+        benchMarkLine
+            .data(data)
+            .enter()
+            .append("line")
+            .attr("class", "benchMarkLine")
+            .attr('x1', function (d, i) { return (2*i-1)*xScale.rangeBand()+margin.right/1.2})
+            .attr("x2", function (d, i) { return (2*i)*xScale.rangeBand()+margin.right/1})
+            .attr('y1', function (d, i) { return yScale(d.benchmark)})
+            .attr('y2', function (d, i) { return yScale(d.benchmark)})
+            .attr("stroke-width", 2)
+            .attr("stroke", "#A64C38")
+            .attr("fill", "none");
+
+        svg.selectAll('.line')
+            .append("path")
+            .attr("d", "M1,-5.26429605180997L6.078685485212741,5.26429605180997 -6.078685485212741,5.26429605180997Z");
+
+    }
+
+    function setXAxis(){
+        xScale = d3.scale.ordinal()
+            .domain(dataset[0].map(function(d) { return d.x; }))
+            .rangeRoundBands([10, width-10], 0.5);
+        console.log("xScale");
+        console.log(xScale);
+
+        xAxis = d3.svg.axis()
+            .scale(xScale)
+            .orient("bottom")
+            .tickFormat(function(d) { return d });
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+    }
+
+    function setYAxis() {
+        yScale = d3.scale.linear()
+            .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; }) +50 ;  })])
+            .range([height, 0]);
+
+        console.log(xScale.rangeBand());
+        // console.log(x(0).rangeBand());
+        // console.log(x(1));
+        // console.log(x(2));
+        // console.log(x(3));
+
+        yAxis = d3.svg.axis()
+            .scale(yScale)
+            .orient("left")
+            .ticks(5)
+            .tickSize(-width, 0, 0)
+            .tickFormat( function(d) { return d } );
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+    }
 
 </script>
