@@ -60,22 +60,17 @@
         .attr("class", "chart")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  /*  svg.append("path")
-        .attr("d", d3.svg.symbol().type("triangle-up"));*/
+    svg.append("path")
+        .attr("d", d3.svg.symbol().type("triangle-up"));
 
     var rawData1 = [
-        { group: "All Medical Claims", value: "100", benchmark: "80"},
-        { group: "In Patient", value: "56", benchmark: "20"},
-        { group: "Out Patient", value: "120", benchmark: "45"},
-        { group: "Office Visit", value: "60", benchmark: "75"},
-        { group: "Pharmacy Claims", value: "150", benchmark: "140"}];
+        { group: "All Medical Claims", value: "327.74", benchmark: "317.23"},
+        { group: "In Patient", value: "91.17", benchmark: "99.8"},
+        { group: "Out Patient", value: "174.59", benchmark: "152.27"},
+        { group: "Office Visit", value: "61.97", benchmark: "65.17"},
+        { group: "Pharmacy Claims", value: "86.34", benchmark: "78.97"}];
 
-    var rawData2 = [
-        { group: "All Medical Claims", value: "10", benchmark: "8"},
-        { group: "In Patient", value: "5", benchmark: "2"},
-        { group: "Out Patient", value: "12", benchmark: "4"},
-        { group: "Office Visit", value: "6", benchmark: "7"},
-        { group: "Pharmacy Claims", value: "15", benchmark: "23"}];
+    var rawData2 = getRawData(rawData1);
 
     onLoad();
 
@@ -123,9 +118,8 @@
         .attr("font-weight", "bold");*/
 
     function onLoad(){
-        getData(rawData1);
+        getData(rawData1, 1);
         setXAxis();
-        setYAxis();
         barWidth=750/data.length/2;
         // parseFloat(document.getElementsByClassName("bar")[0].getAttribute("width"));
         console.log(barWidth);
@@ -136,13 +130,26 @@
         svg.selectAll("g.claims").remove();
         svg.selectAll("line.benchMarkLine").remove();
         var rawData = (check==1)?rawData1:rawData2;
-        getData(rawData);
+        getData(rawData, check);
+        setYAxis();
         createGroups();
         populateData();
         drawBenchmark();
+        putLabel(check);
     }
 
-    function getData(rawData) {
+    function getRawData(rawData) {
+        var benchMarkData = [];
+        rawData.forEach(function (val) {
+            var a ;
+            a = {group: val.group, value: (val.value/val.benchmark)*100, benchmark: 100};
+            benchMarkData.push(a);
+        });
+        console.log(benchMarkData);
+        return benchMarkData;
+    }
+
+    function getData(rawData, check) {
         data = [];
         rawData.forEach(function (val) {
             var a ;
@@ -161,7 +168,8 @@
         // Transpose the data into layers
         dataset = d3.layout.stack()(["belowBenchMark", "aboveBenchMark"].map(function(dataSet) {
             return data.map(function(d) {
-                return {x: d.group, y: +d[dataSet], label: +d.value, xA : d.group};
+                var label = (check==1)?d.value: (d.value-100);
+                return {x: d.group, y: +d[dataSet], label: +label, xA : d.group};
             });
         }));
         console.log(dataset);
@@ -177,6 +185,7 @@
     }
 
     function populateData() {
+        setYAxis();
         rect = groups.selectAll("rect");
         var rectCount = document.getElementsByClassName("bar").length;
         console.log(rectCount);
@@ -198,20 +207,6 @@
             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
             tooltip.select("text").text(d.y);
         });*/
-        console.log(rect);
-
-        var label = groups.selectAll('text')
-            .data(function(d) { return d; })
-            .enter()
-            .append("text")
-            .text(function (d) {
-                return d.label;
-            })
-            .attr('y', function (d) { return yScale(d.label + 5);})
-            .attr('x', function (d, i) { return xScale(d.x) + barWidth/2;})
-            .attr('fill', '#A64C38');
-
-        label.style("text-anchor","middle");
     }
 
     function drawBenchmark() {
@@ -235,12 +230,25 @@
 
     }
 
+    function putLabel(check) {
+        var label = groups.selectAll('text')
+            .data(function(d) { return d; })
+            .enter()
+            .append("text")
+            .text(function (d) {
+                return d.label;
+            })
+            .attr('y', function (d) { return yScale(((check==1)? d.label: d.value) + 5) ;})
+            .attr('x', function (d, i) { return xScale(d.x) + barWidth/2;})
+            .attr('fill', '#A64C38');
+
+        label.style("text-anchor","middle");
+    }
+
     function setXAxis(){
         xScale = d3.scale.ordinal()
             .domain(dataset[0].map(function(d) { return d.x; }))
             .rangeRoundBands([10, width-10], 0.5);
-        console.log("xScale");
-        console.log(xScale);
 
         xAxis = d3.svg.axis()
             .scale(xScale)
@@ -258,12 +266,6 @@
         yScale = d3.scale.linear()
             .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; }) +50 ;  })])
             .range([height, 0]);
-
-        console.log(xScale.rangeBand());
-        // console.log(x(0).rangeBand());
-        // console.log(x(1));
-        // console.log(x(2));
-        // console.log(x(3));
 
         yAxis = d3.svg.axis()
             .scale(yScale)
