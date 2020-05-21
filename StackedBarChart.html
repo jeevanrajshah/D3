@@ -43,6 +43,7 @@
     var check = 1;
     var xScale, yScale, xAxis, yAxis;
     var barWidth;
+    var test = true
 
     var margin = {top: 20, right: 160, bottom: 35, left: 30};
 
@@ -74,54 +75,11 @@
 
     onLoad();
 
-    /* // Draw legend
-     var legend = svg.selectAll(".legend")
-         .data(colors)
-         .enter().append("g")
-         .attr("class", "legend")
-         .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
-
-    legend.append("rect")
-           .attr("x", width - 18)
-           .attr("width", 18)
-           .attr("height", 18)
-           .style("fill", function(d, i) {return colors.slice().reverse()[i];});
-
-       legend.append("text")
-           .attr("x", width + 5)
-           .attr("y", 9)
-           .attr("dy", ".35em")
-           .style("text-anchor", "start")
-           .text(function(d, i) {
-               switch (i) {
-                   case 0: return "Above Benchmark";
-                   case 1: return "Below Benchmark";
-               }
-           });*/
-
-    /*// Prep the tooltip bits, initial display is hidden
-    var tooltip = svg.append("g")
-        .attr("class", "tooltip")
-        .style("display", "none");
-
-    tooltip.append("rect")
-        .attr("width", 30)
-        .attr("height", 20)
-        .attr("fill", "white")
-        .style("opacity", 0.5);
-
-    tooltip.append("text")
-        .attr("x", 15)
-        .attr("dy", "1.2em")
-        .style("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .attr("font-weight", "bold");*/
 
     function onLoad(){
         getData(rawData1, 1);
         setXAxis();
         barWidth=750/data.length/2;
-        // parseFloat(document.getElementsByClassName("bar")[0].getAttribute("width"));
         console.log(barWidth);
         plotChart(1);
     }
@@ -131,9 +89,14 @@
         svg.selectAll("line.benchMarkLine").remove();
         var rawData = (check==1)?rawData1:rawData2;
         getData(rawData, check);
-        setYAxis();
         createGroups();
-        populateData();
+        if (test) {
+            test = false;
+            setYAxis();
+            populateInitialData(check);
+        }else{
+            populateData(check);
+        }
         drawBenchmark();
         putLabel(check);
     }
@@ -184,8 +147,29 @@
             .style("fill", function(d, i) { return colors[i]; });
     }
 
-    function populateData() {
-        setYAxis();
+    function populateData(check) {
+        
+        rect = groups.selectAll("rect");
+
+    
+        var rectCount = document.getElementsByClassName("bar").length;
+        console.log(rectCount);
+        rect
+            .data(function(d) { return d; })
+            .enter()
+            .append("rect")
+            .attr("opacity","0.7")
+            .attr("class", "bar")
+            .attr("x", function(d) { return xScale(d.x); })
+            .attr("y", function(d) { return yScale(d.y0 + d.y); })
+            .attr("height", function(d) { return yScale(d.y0) - yScale(d.y0 + d.y); })
+            .attr("width", xScale.rangeBand())
+            svg.select(".y").style("opacity", check==1?1:0);
+    }
+
+    
+    function populateInitialData(check) {
+
         rect = groups.selectAll("rect");
         var rectCount = document.getElementsByClassName("bar").length;
         console.log(rectCount);
@@ -199,34 +183,10 @@
             .attr("y", function(d) { return yScale(d.y0 + d.y); })
             .attr("height", function(d) { return yScale(d.y0) - yScale(d.y0 + d.y); })
             .attr("width", xScale.rangeBand())
-        /*.on("mouseover", function() { tooltip.style("display", null); })
-        .on("mouseout", function() { tooltip.style("display", "none"); })
-        .on("mousemove", function(d) {
-            var xPosition = d3.mouse(this)[0] - 15;
-            var yPosition = d3.mouse(this)[1] - 25;
-            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-            tooltip.select("text").text(d.y);
-        });*/
     }
 
     function drawBenchmark() {
-        benchMarkLine = svg.selectAll('toto');
-        benchMarkLine
-            .data(data)
-            .enter()
-            .append("line")
-            .attr("class", "benchMarkLine")
-            .attr('x1', function (d, i) { return (2*i-1)*xScale.rangeBand()+margin.right/1.2})
-            .attr("x2", function (d, i) { return (2*i)*xScale.rangeBand()+margin.right/1})
-            .attr('y1', function (d, i) { return yScale(d.benchmark)})
-            .attr('y2', function (d, i) { return yScale(d.benchmark)})
-            .attr("stroke-width", 2)
-            .attr("stroke", "#A64C38")
-            .attr("fill", "none");
-
-        svg.selectAll('.line')
-            .append("path")
-            .attr("d", "M1,-5.26429605180997L6.078685485212741,5.26429605180997 -6.078685485212741,5.26429605180997Z");
+   
 
     }
 
@@ -279,4 +239,27 @@
             .call(yAxis);
     }
 
+       function drawBenchmark() {
+        benchMarkLine = svg.selectAll('toto');
+        benchMarkLine
+            .data(data)
+            .enter()
+            .append("line")
+            .attr("class", "benchMarkLine")
+            .attr('x1', function (d, i) { return (2*i-1)*xScale.rangeBand()+margin.right/1.2})
+            .attr("x2", function (d, i) { return (2*i)*xScale.rangeBand()+margin.right/1})
+            .attr('y1', function (d, i) { return yScale(d.benchmark)})
+            .attr('y2', function (d, i) { return yScale(d.benchmark)})
+            .attr("stroke-width", 2)
+            .attr("stroke", "#A64C38")
+            .attr("fill", "none");
+
+        svg.selectAll('.line')
+            .append("path")
+            .attr("d", "M1,-5.26429605180997L6.078685485212741,5.26429605180997 -6.078685485212741,5.26429605180997Z");
+
+    }
+
 </script>
+
+ 
