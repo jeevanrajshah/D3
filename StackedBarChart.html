@@ -80,7 +80,6 @@
         getData(rawData1, 1);
         setXAxis();
         barWidth=750/data.length/2;
-        console.log(barWidth);
         plotChart(1);
     }
 
@@ -92,11 +91,9 @@
         createGroups();
         if (test) {
             test = false;
-            setYAxis();
-            populateInitialData(check);
-        }else{
-            populateData(check);
         }
+        setYAxis();
+        populateData(check);
         drawBenchmark();
         putLabel(check);
     }
@@ -167,24 +164,6 @@
             svg.select(".y").style("opacity", check==1?1:0);
     }
 
-    
-    function populateInitialData(check) {
-
-        rect = groups.selectAll("rect");
-        var rectCount = document.getElementsByClassName("bar").length;
-        console.log(rectCount);
-        rect
-            .data(function(d) { return d; })
-            .enter()
-            .append("rect")
-            .attr("opacity","0.7")
-            .attr("class", "bar")
-            .attr("x", function(d) { return xScale(d.x); })
-            .attr("y", function(d) { return yScale(d.y0 + d.y); })
-            .attr("height", function(d) { return yScale(d.y0) - yScale(d.y0 + d.y); })
-            .attr("width", xScale.rangeBand())
-    }
-
     function drawBenchmark() {
    
 
@@ -230,7 +209,7 @@
         yAxis = d3.svg.axis()
             .scale(yScale)
             .orient("left")
-            .ticks(5)
+            .ticks(1)
             .tickSize(-width, 0, 0)
             .tickFormat( function(d) { return d } );
 
