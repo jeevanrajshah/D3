@@ -7,12 +7,13 @@
     <style type="text/css">
         svg {
             font: 10px sans-serif;
-            shape-rendering: crispEdges;
+            shape-rendering: auto;
         }
         .axis path,
         .axis line {
             fill: none;
             stroke: #000;
+
         }
 
         path.domain {
@@ -120,6 +121,23 @@
         .attr("class", "chart")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        var lg = svg.append("defs").append("linearGradient")
+.attr("id", "mygrad")//id of the gradient
+.attr("x1", "0%")
+.attr("x2", "0%")
+.attr("y1", "0%")
+.attr("y2", "100%")//since its a vertical linear gradient 
+;
+lg.append("stop")
+.attr("offset", "0%")
+.style("stop-color", "#113D6F")//end in red
+.style("stop-opacity", 1)
+
+lg.append("stop")
+.attr("offset", "100%")
+.style("stop-color", "#6B89A9")//start in blue
+.style("stop-opacity", 1)
+
     var diffLabelContainer = svg.append('g')
         .attr("class", "diffLabel-container");
 
@@ -209,7 +227,7 @@
             .data(dataset)
             .enter().append("g")
             .attr("class", "claims")
-            .style("fill", function(d, i) { return colors[i]; });
+            .style("fill", function(d, i) { if(i==1){return colors[i];}else{ return "url(#mygrad)"} });
     }
 
     function populateData(check) {
