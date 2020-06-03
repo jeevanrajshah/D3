@@ -26,13 +26,72 @@
 
 </head>
 <body>
-<div>
-    <button id = 'btn_transition1' onclick=plotChart(1)>$ above benchmark</button>
-    <button id = 'btn_transition2' onclick="plotChart(2)">% above benchmark</button>
+<div class="container">
+    <div>
+        <button id = 'btn_transition1' onclick=plotChart(1)>
+            <div class="text-blue">$ above benchmark</div>
+            <div class="text">
+                <div class="text-left"> <b>Out Patient</b> medical claims pmpm was the greatest outlier</div>
+                <div class="text-right">
+                    <div > $ 22.32 pmpm</div>
+                    <div> above the benchmark</div>
+                </div>
+            </div>
+        </button>
+        <button id = 'btn_transition2' onclick="plotChart(2)">
+            <div class="text-blue">% above benchmark</div>
+            <div class="text">
+                <div class="text-left"> <b>Out Patient</b> medical claims was the greatest outlier</div>
+                <div class="text-right">
+                    <div > 15%</div>
+                    <div> above the benchmark</div>
+                </div>
+            </div>
+        </button>
+    </div>
+    <div class = "chart-container">
 </div>
 
 </body>
 </html>
+<style>
+    .svg-container{
+        background-color: #F5F5F5;
+    }
+    .highlightBox{
+        background-color: #FFF8E5;
+    }
+    text{
+        color: #444444
+    }
+    .container{
+        transform: translate(100px,0px);
+    }
+    button{
+        padding: 5px;
+        height: 100px;
+        width: 450px;
+        border-radius: 5px;
+        margin: 15px;
+        padding: 0px 0px 25px 15px;
+        border-color: #D9E6FF;
+        background-color: #FFFFFF;
+
+    }
+    button .text-blue{
+        color: #113D6F;
+        padding: 0px 0px 15px 0px;
+    }
+    button .text-left{
+        float: left;
+        width: 200px;
+    }
+    button .text-right{
+        float: right;
+        width: 200px;
+    }
+
+</style>
 
 <script>
     var groups;
@@ -49,13 +108,14 @@
     var width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
-    var colors = ["#607aa8", "#1a3d7a"];
+    var colors = ["#6B89A9", "#113D6F"];
 
-    var svg = d3.select("body")
+    var svg = d3.select(".chart-container")
         .append("svg")
         .attr("class", "svg-container")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
+        .attr("transform", "translate(" + 0 + "," + margin.top + ")")
         .append("g")
         .attr("class", "chart")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -78,11 +138,10 @@
         getData(rawData1, 1);
         setXAxis();
         barWidth=750/data.length/2;
-        plotChart(1);
         var highlightDataIndex = getHighlightIndex();
-        console.log("highlightDataIndex");
-        console.log(highlightDataIndex);
-        highLight(highlightDataIndex)
+        highLight(highlightDataIndex);
+        plotChart(1);
+
     }
 
     function plotChart(check) {
@@ -176,7 +235,8 @@
             .enter()
             .append("text")
             .text(function (d) {
-                return parseInt(d.value - d.benchmark);
+                if(check == 1) return parseInt(d.value - d.benchmark);
+                else return Math.round(d.value - d.benchmark);
             })
             .attr('x', function (d, i) { return xScale(d.group) + barWidth/2;})
             .attr('fill', 'gray')
@@ -246,7 +306,7 @@
             .attr('y1', function (d, i) { return yScale(d.benchmark)})
             .attr('y2', function (d, i) { return yScale(d.benchmark)})
             .attr("stroke-width", 2)
-            .attr("stroke", "#A64C38")
+            .attr("stroke", "#84083C")
             .attr("fill", "none");
 
         svg
@@ -276,20 +336,29 @@
                 }
                 else{ return }
             })
-            .style("fill","#dd4237")
+            .style("fill","#84083C")
             .attr('class','benchmarkTriangle');
 
     }
 
     function highLight(highlightDataIndex) {
-        d3.select('.svg-container')
+        var highlightRect = d3.select('.svg-container')
             .append("rect")
             .attr('class','highlightBox')
             .attr("opacity","0.4")
             .attr("x", function(d) { return xScale(data[highlightDataIndex].group) - 30; })
             .attr("height", function(d) { return height +margin.top +margin.bottom; })
             .attr("width", xScale.rangeBand()+ 60)
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("fill","#f7e9bc")
+            .attr("transform", "translate(" + margin.left + "," + 0 + ")")
+            .attr("z-index", -1);
+
+        var highlightText = highlightRect
+            .append("text")
+            .text('Most above the benchmark')
+            // .attr('y', yScale(data[0].value)+13)
+            .attr('class','highlightText')
+            .attr('transform', "translate("+-margin.top+", 0 )");
 
     }
 
