@@ -50,13 +50,13 @@
         </button>
     </div>
     <div class = "chart-container">
+    </div>
 </div>
-
 </body>
 </html>
 <style>
     .svg-container{
-        background-color: #F5F5F5;
+        /*background-color: #F5F5F5;*/
     }
     .highlightBox{
         background-color: #FFF8E5;
@@ -351,14 +351,8 @@
             .attr("width", xScale.rangeBand()+ 60)
             .attr("fill","#f7e9bc")
             .attr("transform", "translate(" + margin.left + "," + 0 + ")")
-            .attr("z-index", -1);
-
-        var highlightText = highlightRect
             .append("text")
-            .text('Most above the benchmark')
-            // .attr('y', yScale(data[0].value)+13)
-            .attr('class','highlightText')
-            .attr('transform', "translate("+-margin.top+", 0 )");
+            .text('Most above the benchmark');
 
     }
 
