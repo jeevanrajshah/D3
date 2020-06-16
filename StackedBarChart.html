@@ -28,21 +28,21 @@
 </head>
 <body>
 <div class="container">
-    <div>
+    <div class="button-container">
         <button id = 'btn_transition1' onclick=plotChart(1)>
             <div class="text-blue">$ above benchmark</div>
             <div class="text">
-                <div class="text-left"> <b>Out Patient</b> medical claims pmpm was the greatest outlier</div>
+                <div class="text-left"> <b>Out Patient</b> medical </br>claims pmpm was the </br>greatest outlier</div>
                 <div class="text-right">
                     <div > $ 22.32 pmpm</div>
                     <div> above the benchmark</div>
                 </div>
             </div>
         </button>
-        <button id = 'btn_transition2' onclick="plotChart(2)">
+        <button id = 'btn_transition2' onclick="plotChart(2)" >
             <div class="text-blue">% above benchmark</div>
             <div class="text">
-                <div class="text-left"> <b>Out Patient</b> medical claims was the greatest outlier</div>
+                <div class="text-left"> <b>Out Patient</b> medical </br>claims was the greatest </br>outlier</div>
                 <div class="text-right">
                     <div > 15%</div>
                     <div> above the benchmark</div>
@@ -56,11 +56,15 @@
 </body>
 </html>
 <style>
+    .button-container{
+        width: 860px;
+        height: 100px;
+    }
     .svg-container{
         /*background-color: #F5F5F5;*/
     }
     .highlightBox{
-        background-color: #FFF8E5;
+        background-color: #ffffff;
     }
     text{
         color: #444444
@@ -69,14 +73,14 @@
         transform: translate(100px,0px);
     }
     button{
-        padding: 5px;
-        height: 100px;
-        width: 450px;
+        height: 100%;
+        width: 49.5%;
         border-radius: 5px;
-        margin: 15px;
-        padding: 0px 0px 25px 15px;
+        /*margin: 15px;*/
+        padding: 0px 0px 0px 0px;
         border-color: #D9E6FF;
         background-color: #FFFFFF;
+        border-width: 1px;
 
     }
     button .text-blue{
@@ -85,11 +89,21 @@
     }
     button .text-left{
         float: left;
-        width: 200px;
+        width: 45%;
+        text-align: left;
+        padding: 0px 0px 0px 15px;
     }
     button .text-right{
         float: right;
-        width: 200px;
+        width: 45%;
+        text-align: right;
+        padding: 0px 15px 0px 0px;
+    }
+    #btn_transition2{
+        float: left;
+    }
+    #btn_transition2{
+        float: right;
     }
 
 </style>
@@ -103,6 +117,7 @@
     var check = 1;
     var xScale, yScale, xAxis, yAxis;
     var barWidth;
+    var highlightDataIndex;
 
     var margin = {top: 50, right: 160, bottom: 35, left: 100};
 
@@ -332,6 +347,7 @@ lg.append("stop")
             .text('benchmark')
             .attr('y', yScale(data[0].value)+13)
             .attr('class','benchMarkText')
+            .attr("fill", "#84083C")
             .attr('transform', "translate("+-margin.top+", 0 )");
 
         svg.selectAll('g .triangles').remove();
@@ -367,7 +383,7 @@ lg.append("stop")
             .attr("x", function(d) { return xScale(data[highlightDataIndex].group) - 30; })
             .attr("height", function(d) { return height +margin.top +margin.bottom; })
             .attr("width", xScale.rangeBand()+ 60)
-            .attr("fill","#f7e9bc")
+            .attr("fill","#ffe9a8")
             .attr("transform", "translate(" + margin.left + "," + 0 + ")")
             .append("text")
             .text('Most above the benchmark');
